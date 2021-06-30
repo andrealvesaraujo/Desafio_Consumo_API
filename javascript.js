@@ -1,16 +1,27 @@
-var productsOptionsList = document.getElementById('productsOptionsList');
-
-var apiInfo = ApiCall()
-
-async function ApiCall() {
+async function ApiProducts() {
+    
     const apiResult = await fetch("https://mystique-v2-americanas.juno.b2w.io/autocomplete?content=camiseta&source=nanook")
-    return apiResult.json()  
+
+    return new Promise( (resolve, reject)=>{
+
+        const apiInfo = apiResult.json()  
+
+        apiInfo.then((result)=>{
+            resolve(result.products)            
+        }).catch((err)=>{            
+            reject(`Request Error : ${err}`)
+        })  
+
+    })
+
 }
 
-async function listAvailableProducts() {
+var productsOptionsList = document.getElementById('productsOptionsList');
 
-    apiInfo.then((result)=>{
-        result.products.forEach(product =>{
+(async function listAvailableProducts(){
+
+    ApiProducts().then((result)=>{
+        result.forEach(product =>{
             
             var item = document.createElement("li");
             item.innerHTML = product.name
@@ -19,12 +30,11 @@ async function listAvailableProducts() {
         })
         
     }).catch((err)=>{
-        console.log(`Request Error : ${err}`)
+        alert(err)
     })    
     
-}
+}())
 
-listAvailableProducts()
 
 var searchForm = document.querySelector("form");
 var nameProduct = document.getElementById('nameProduct');
@@ -34,19 +44,19 @@ searchForm.addEventListener('submit', async function(e) {
     
     e.preventDefault()
 
-    apiInfo.then((result)=>{
-        let product = result.products.find(product =>{
+    ApiProducts().then((result)=>{
+        let product = result.find(product =>{
             if (product.name === nameProduct.value) {
                 return product;
             } 
         })
         var item = document.createElement("li");
-        product ? item.innerHTML = product.name : item.innerHTML = `Produto ${nameProduct.value} não foi encontrado`
+        product ? item.innerHTML = `Quero comprar ${product.name}`: item.innerHTML = `Produto ${nameProduct.value} não foi encontrado`
         nameProduct.value = ""
         resultadoDaPesquisa.appendChild(item)
 
     }).catch((err)=>{
-        console.log(`Request Error : ${err}`)
+        alert(err)
     })    
     
 });
